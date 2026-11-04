@@ -59,14 +59,60 @@ function renderSessions() {
   });
 }
 
+function initials(name) {
+  return (name || "?").split(" ").map(p => p[0]).join("").substring(0,2).toUpperCase();
+}
+
 function renderAttendance() {
-  const tbody = document.getElementById("attBody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("attList");
+  const empty = document.getElementById("attEmpty");
+  if (!list) return;
+  list.innerHTML = "";
   const sessions = getSessions();
-  getAttendance().forEach(a => {
+  const items = getAttendance();
+  if (items.length === 0) {
+    if (empty) empty.classList.remove("hidden");
+    return;
+  }
+  if (empty) empty.classList.add("hidden");
+  items.forEach(a => {
     const s = sessions.find(x => x.code === a.code);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${a.student}</td><td>${s ? s.course : "-"}</td><td>${a.date}</td><td>${a.time}</td>`;
-    tbody.appendChild(tr);
+    const item = document.createElement("div");
+    item.className = "live-item";
+    item.innerHTML = `
+      <div class="avatar">${initials(a.student)}</div>
+      <div class="live-info">
+        <div class="live-name">${a.student}</div>
+        <div class="live-meta">${s ? s.course : "-"} · ${a.date} ${a.time}</div>
+      </div>
+      <span class="pulse-dot" title="Presente"></span>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// Botones del módulo QR
+const downloadQrBtn = document.getElementById("downloadQrBtn");
+const fullscreenQrBtn = document.getElementById("fullscreenQrBtn");
+
+if (downloadQrBtn) {
+  downloadQrBtn.addEventListener("click", () => {
+    const canvas = document.querySelector("#qrcode canvas");
+    const img = document.querySelector("#qrcode img");
+    let url = null;
+    if (canvas) url = canvas.toDataURL("image/png");
+    else if (img) url = img.src;
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "codigo-qr-asistencia.png";
+    a.click();
+  });
+}
+
+if (fullscreenQrBtn) {
+  fullscreenQrBtn.addEventListener("click", () => {
+    const frame = document.querySelector(".qr-frame");
+    if (frame && frame.requestFullscreen) frame.requestFullscreen();
   });
 }

@@ -27,9 +27,19 @@
           <input type="date" id="sessionDate" />
           <button id="genBtn">Generar QR</button>
         </div>
-        <div class="tile qr-box" id="qrResult" style="margin-top:1rem;">
-          <div id="qrcode"></div>
-          <p id="qrInfo" class="msg"></p>
+        <div class="qr-module" id="qrResult" style="margin-top:1.25rem;">
+          <div class="qr-frame">
+            <span class="qr-corner tl"></span>
+            <span class="qr-corner tr"></span>
+            <span class="qr-corner bl"></span>
+            <span class="qr-corner br"></span>
+            <div id="qrcode"></div>
+          </div>
+          <p id="qrInfo" class="msg text-center mt-2"></p>
+          <div class="qr-actions">
+            <button class="floating secondary" id="downloadQrBtn">⬇ Descargar QR</button>
+            <button class="floating secondary" id="fullscreenQrBtn">⛶ Proyectar</button>
+          </div>
         </div>
       </div>
 
@@ -44,12 +54,11 @@
       </div>
 
       <div id="view-asistencia" class="hidden">
-        <h1>Registro de asistencia</h1>
-        <div class="table-wrap">
-        <table>
-          <thead><tr><th>Estudiante</th><th>Curso</th><th>Fecha</th><th>Hora</th></tr></thead>
-          <tbody id="attBody"></tbody>
-        </table>
+        <h1>Registro de asistencia en tiempo real</h1>
+        <p class="subtitle">Alumnos que han registrado su presencia</p>
+        <div id="attList" class="live-list"></div>
+        <div id="attEmpty" class="tile text-center" style="margin-top:1rem;">
+          <p style="color:var(--muted);">Aún no hay asistencias registradas.</p>
         </div>
       </div>
     </main>
