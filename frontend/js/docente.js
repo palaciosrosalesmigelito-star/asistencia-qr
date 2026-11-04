@@ -6,7 +6,6 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   window.location.href = "../index.html";
 });
 
-// navegación
 document.querySelectorAll(".sidebar a").forEach(a => {
   a.addEventListener("click", (e) => {
     e.preventDefault();
@@ -21,8 +20,18 @@ document.querySelectorAll(".sidebar a").forEach(a => {
   });
 });
 
+const API = (path) => fetch(path).then(r => r.ok ? r.json() : Promise.reject(r));
+
+async function useSupabase() {
+  try {
+    const h = await fetch("../api/health").then(r => r.json());
+    return !!h.supabase;
+  } catch { return false; }
+}
+
+// --- Generar QR ---
 let qrInstance = null;
-document.getElementById("genBtn").addEventListener("click", () => {
+document.getElementById("genBtn").addEventListener("click", async () => {
   const course = document.getElementById("course").value.trim();
   const date = document.getElementById("sessionDate").value;
   if (!course || !date) {
@@ -31,10 +40,21 @@ document.getElementById("genBtn").addEventListener("click", () => {
     return;
   }
   const code = newSessionCode();
-  const session = { code, course, date, docente: user.name, createdAt: new Date().toISOString() };
-  const sessions = getSessions();
-  sessions.push(session);
-  saveSessions(sessions);
+  const session = { code, course, date, docente: user.name };
+
+  if (await useSupabase()) {
+    try {
+      await fetch("../api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(session)
+      });
+    } catch (e) { console.warn("API error", e); }
+  } else {
+    const sessions = getSessions();
+    sessions.push({ ...session, createdAt: new Date().toISOString() });
+    saveSessions(sessions);
+  }
 
   const payload = JSON.stringify({ code, course, date });
   const qrEl = document.getElementById("qrcode");
@@ -46,21 +66,17 @@ document.getElementById("genBtn").addEventListener("click", () => {
     correctLevel: QRCode.CorrectLevel.H
   });
 
-  // Incrustar la cara en el centro del QR
   setTimeout(() => {
     const canvas = qrEl.querySelector("canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const img = new Image();
-    img.crossOrigin = "anonymous";
     img.onload = () => {
       const size = canvas.width * 0.26;
       const x = (canvas.width - size) / 2;
       const y = (canvas.height - size) / 2;
-      // fondo blanco para destacar la cara
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(x - 6, y - 6, size + 12, size + 12);
-      // cara circular recortada
       ctx.save();
       ctx.beginPath();
       ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
@@ -76,11 +92,18 @@ document.getElementById("genBtn").addEventListener("click", () => {
   document.getElementById("qrInfo").className = "msg ok";
 });
 
-function renderSessions() {
+// --- Sesiones ---
+async function renderSessions() {
   const tbody = document.getElementById("sessionsBody");
   tbody.innerHTML = "";
-  const att = getAttendance();
-  getSessions().filter(s => s.docente === user.name).forEach(s => {
+  let sessions = [];
+  if (await useSupabase()) {
+    try { sessions = await API("../api/sessions"); } catch { sessions = getSessions(); }
+  } else {
+    sessions = getSessions();
+  }
+  const att = (await useSupabase()) ? await API("../api/attendance").catch(() => getAttendance()) : getAttendance();
+  sessions.filter(s => !s.docente || s.docente === user.name).forEach(s => {
     const count = att.filter(a => a.code === s.code).length;
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${s.course}</td><td>${s.date}</td><td>${s.code}</td><td>${count}</td>`;
@@ -88,17 +111,25 @@ function renderSessions() {
   });
 }
 
+// --- Asistencia en tiempo real ---
 function initials(name) {
   return (name || "?").split(" ").map(p => p[0]).join("").substring(0,2).toUpperCase();
 }
 
-function renderAttendance() {
+async function renderAttendance() {
   const list = document.getElementById("attList");
   const empty = document.getElementById("attEmpty");
   if (!list) return;
   list.innerHTML = "";
-  const sessions = getSessions();
-  const items = getAttendance();
+  let items = [];
+  let sessions = [];
+  if (await useSupabase()) {
+    try { items = await API("../api/attendance"); } catch { items = getAttendance(); }
+    try { sessions = await API("../api/sessions"); } catch { sessions = getSessions(); }
+  } else {
+    items = getAttendance();
+    sessions = getSessions();
+  }
   if (items.length === 0) {
     if (empty) empty.classList.remove("hidden");
     return;

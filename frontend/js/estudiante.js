@@ -48,18 +48,26 @@ if (startBtn) {
   });
 }
 
-function onScanSuccess(decodedText) {
+async function onScanSuccess(decodedText) {
   try {
     const data = JSON.parse(decodedText);
     if (!data.code) throw new Error("invalid");
-    const sessions = getSessions();
+    let sessions = getSessions();
+    try {
+      const r = await fetch("../api/sessions");
+      if (r.ok) sessions = await r.json();
+    } catch (e) {}
     const session = sessions.find(s => s.code === data.code);
     if (!session) {
       scanMsg.textContent = "Sesión no encontrada.";
       scanMsg.className = "msg error";
       return;
     }
-    const att = getAttendance();
+    let att = getAttendance();
+    try {
+      const r = await fetch("../api/attendance");
+      if (r.ok) att = await r.json();
+    } catch (e) {}
     const dup = att.find(a => a.code === data.code && a.student === user.name);
     if (dup) {
       scanMsg.textContent = "Ya registraste asistencia para esta sesión.";
@@ -67,13 +75,30 @@ function onScanSuccess(decodedText) {
       return;
     }
     const now = new Date();
-    att.push({
+    const record = {
       code: data.code,
       student: user.name,
       date: now.toLocaleDateString(),
       time: now.toLocaleTimeString()
-    });
-    saveAttendance(att);
+    };
+    let useApi = false;
+    try {
+      const h = await fetch("../api/health").then(r => r.json());
+      useApi = !!h.supabase;
+    } catch (e) {}
+    if (useApi) {
+      try {
+        await fetch("../api/attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(record)
+        });
+      } catch (e) { console.warn(e); }
+    } else {
+      const att = getAttendance();
+      att.push(record);
+      saveAttendance(att);
+    }
     scanMsg.textContent = "Asistencia registrada: " + session.course;
     scanMsg.className = "msg ok";
   } catch (e) {
@@ -82,11 +107,16 @@ function onScanSuccess(decodedText) {
   }
 }
 
-function renderHistory() {
+async function renderHistory() {
   const tbody = document.getElementById("histBody");
   tbody.innerHTML = "";
-  const sessions = getSessions();
-  getAttendance().filter(a => a.student === user.name).forEach(a => {
+  let sessions = getSessions();
+  let att = getAttendance();
+  try {
+    const rs = await fetch("../api/sessions"); if (rs.ok) sessions = await rs.json();
+    const ra = await fetch("../api/attendance"); if (ra.ok) att = await ra.json();
+  } catch (e) {}
+  att.filter(a => a.student === user.name).forEach(a => {
     const s = sessions.find(x => x.code === a.code);
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${s ? s.course : "-"}</td><td>${a.date}</td><td>${a.time}</td>`;
