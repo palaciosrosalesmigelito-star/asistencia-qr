@@ -37,12 +37,41 @@ document.getElementById("genBtn").addEventListener("click", () => {
   saveSessions(sessions);
 
   const payload = JSON.stringify({ code, course, date });
-  document.getElementById("qrcode").innerHTML = "";
-  qrInstance = new QRCode(document.getElementById("qrcode"), {
+  const qrEl = document.getElementById("qrcode");
+  qrEl.innerHTML = "";
+  qrInstance = new QRCode(qrEl, {
     text: payload,
-    width: 220,
-    height: 220
+    width: 260,
+    height: 260,
+    correctLevel: QRCode.CorrectLevel.H
   });
+
+  // Incrustar la cara en el centro del QR
+  setTimeout(() => {
+    const canvas = qrEl.querySelector("canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const size = canvas.width * 0.26;
+      const x = (canvas.width - size) / 2;
+      const y = (canvas.height - size) / 2;
+      // fondo blanco para destacar la cara
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x - 6, y - 6, size + 12, size + 12);
+      // cara circular recortada
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+      ctx.restore();
+    };
+    img.src = "../assets/face.jpg";
+  }, 50);
+
   document.getElementById("qrInfo").textContent = "Sesión creada: " + code;
   document.getElementById("qrInfo").className = "msg ok";
 });
