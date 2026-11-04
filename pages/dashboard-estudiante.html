@@ -20,16 +20,26 @@
       <div id="view-escanear">
         <h1>Registrar asistencia</h1>
         <div class="tile">
-          <div id="reader"></div>
-          <p id="scanMsg" class="msg"></p>
+          <div class="scanner-frame" id="scannerFrame">
+            <div id="reader"></div>
+            <span class="scanner-corner-tl"></span>
+            <span class="scanner-corner-tr"></span>
+            <span class="scanner-corner-bl"></span>
+            <span class="scanner-corner-br"></span>
+            <div class="scan-line"></div>
+          </div>
+          <p id="scanMsg" class="msg text-center mt-2"></p>
+          <button id="startScanBtn" class="success large mt-2">Activar cámara y escanear</button>
         </div>
       </div>
       <div id="view-historial" class="hidden">
         <h1>Mi historial de asistencia</h1>
+        <div class="table-wrap">
         <table>
           <thead><tr><th>Curso</th><th>Fecha</th><th>Hora</th></tr></thead>
           <tbody id="histBody"></tbody>
         </table>
+        </div>
       </div>
     </main>
   </div>

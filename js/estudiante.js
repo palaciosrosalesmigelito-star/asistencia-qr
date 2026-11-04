@@ -21,6 +21,32 @@ document.querySelectorAll(".sidebar a").forEach(a => {
 
 const scanMsg = document.getElementById("scanMsg");
 let scanner = null;
+let scanning = false;
+
+const startBtn = document.getElementById("startScanBtn");
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    if (scanning) return;
+    scanMsg.textContent = "Iniciando cámara...";
+    scanMsg.className = "msg";
+    scanner = new Html5Qrcode("reader");
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 220 },
+      onScanSuccess,
+      () => {}
+    ).then(() => {
+      scanning = true;
+      startBtn.textContent = "Cámara activa";
+      startBtn.disabled = true;
+      scanMsg.textContent = "Apunta al código QR del docente.";
+      scanMsg.className = "msg ok";
+    }).catch(err => {
+      scanMsg.textContent = "No se pudo iniciar la cámara: " + err;
+      scanMsg.className = "msg error";
+    });
+  });
+}
 
 function onScanSuccess(decodedText) {
   try {
@@ -55,17 +81,6 @@ function onScanSuccess(decodedText) {
     scanMsg.className = "msg error";
   }
 }
-
-scanner = new Html5Qrcode("reader");
-scanner.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 220 },
-  onScanSuccess,
-  () => {}
-).catch(err => {
-  scanMsg.textContent = "No se pudo iniciar la cámara: " + err;
-  scanMsg.className = "msg error";
-});
 
 function renderHistory() {
   const tbody = document.getElementById("histBody");
