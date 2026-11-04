@@ -125,9 +125,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Static files
+  const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
   let filePath = pathname === "/" ? "/index.html" : pathname;
-  filePath = path.join(__dirname, filePath);
-  if (!filePath.startsWith(__dirname)) return send(res, 403, "Forbidden", "text/plain");
+  filePath = path.join(FRONTEND_DIR, filePath);
+  if (!filePath.startsWith(FRONTEND_DIR)) return send(res, 403, "Forbidden", "text/plain");
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); return res.end("Not found"); }
     const ext = path.extname(filePath).toLowerCase();
