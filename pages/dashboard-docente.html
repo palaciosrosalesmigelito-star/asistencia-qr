@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Docente</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <h2>Panel Docente</h2>
+    <button id="logoutBtn">Cerrar sesión</button>
+  </div>
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="#" class="active" data-view="generar">Generar QR</a>
+      <a href="#" data-view="sesiones">Mis sesiones</a>
+      <a href="#" data-view="asistencia">Asistencia</a>
+    </aside>
+    <main class="content">
+      <div id="view-generar">
+        <h1>Generar código QR de asistencia</h1>
+        <div class="tile">
+          <label for="course">Curso / Asignatura</label>
+          <input type="text" id="course" placeholder="Ej. Matemática I" />
+          <label for="sessionDate">Fecha</label>
+          <input type="date" id="sessionDate" />
+          <button id="genBtn">Generar QR</button>
+        </div>
+        <div class="tile qr-box" id="qrResult" style="margin-top:1rem;">
+          <div id="qrcode"></div>
+          <p id="qrInfo" class="msg"></p>
+        </div>
+      </div>
+
+      <div id="view-sesiones" class="hidden">
+        <h1>Mis sesiones</h1>
+        <table>
+          <thead><tr><th>Curso</th><th>Fecha</th><th>Código</th><th>Asistencias</th></tr></thead>
+          <tbody id="sessionsBody"></tbody>
+        </table>
+      </div>
+
+      <div id="view-asistencia" class="hidden">
+        <h1>Registro de asistencia</h1>
+        <table>
+          <thead><tr><th>Estudiante</th><th>Curso</th><th>Fecha</th><th>Hora</th></tr></thead>
+          <tbody id="attBody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/docente.js"></script>
+</body>
+</html>
