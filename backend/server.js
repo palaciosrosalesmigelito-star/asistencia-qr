@@ -137,7 +137,7 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log("Servidor en http://localhost:" + PORT);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log("Servidor escuchando en el puerto " + PORT);
   console.log("Supabase:", SUPABASE_URL ? "configurado" : "no configurado (modo demo)");
 });
